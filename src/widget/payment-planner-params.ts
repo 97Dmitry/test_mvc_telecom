@@ -22,7 +22,7 @@ export interface IPaymentPlannerConfig {
   selectedCount: number;
   /** Currency filter (`provider_currency_id[]`). Empty array means all currencies. */
   currencyIds: number[];
-  /** Provider filter (`'all'` or a positive finite `provider_id`). Default: `'all'`. */
+  /** Provider filter (`'all'` or a finite `provider_id`). Default: `'all'`. */
   providerId: number | "all";
   /** Billing cycle filter (`'all'` or a finite `billing_cycle_id`). Default: `'all'`. */
   billingCycleId: number | "all";
@@ -52,8 +52,8 @@ export function parsePaymentPlannerParams(
   params: Record<string, unknown> | undefined,
 ): IPaymentPlannerConfig {
   const p = params ?? {};
+  const rowLimit = Object.hasOwn(p, "rowLimit") ? p.rowLimit : p.maxRows;
 
-  // TODO: Implement full defensive parsing according to the specification.
   return {
     description:
       typeof p.description === "string" && p.description.trim()
@@ -68,7 +68,13 @@ export function parsePaymentPlannerParams(
         ? Math.max(0, Math.round(p.selectedCount))
         : DEFAULT_SELECTED_COUNT,
     currencyIds: Array.isArray(p.currencyIds)
-      ? p.currencyIds.filter((id): id is number => typeof id === "number" && Number.isFinite(id))
+      ? [
+          ...new Set(
+            p.currencyIds.filter(
+              (id): id is number => typeof id === "number" && Number.isFinite(id),
+            ),
+          ),
+        ]
       : [],
     providerId:
       typeof p.providerId === "number" && Number.isFinite(p.providerId) ? p.providerId : "all",
@@ -79,8 +85,8 @@ export function parsePaymentPlannerParams(
     amountFormat: AMOUNT_FORMATS.includes(p.amountFormat as TAmountFormat)
       ? (p.amountFormat as TAmountFormat)
       : "grouped",
-    rowLimit: WIDGET_ROW_LIMITS.includes(p.rowLimit as TWidgetRowLimit)
-      ? (p.rowLimit as TWidgetRowLimit)
+    rowLimit: WIDGET_ROW_LIMITS.includes(rowLimit as TWidgetRowLimit)
+      ? (rowLimit as TWidgetRowLimit)
       : DEFAULT_ROW_LIMIT,
     showCustomerBills: typeof p.showCustomerBills === "boolean" ? p.showCustomerBills : true,
     showProviderBreakdown:
