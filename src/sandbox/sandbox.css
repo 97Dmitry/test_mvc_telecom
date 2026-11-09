@@ -5,13 +5,14 @@
 }
 
 .sandbox-topbar {
-  height: 52px;
+  min-height: 52px;
+  flex-wrap: wrap;
   background: var(--nav-bg);
   color: var(--nav-text);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 var(--space-5);
+  padding: var(--space-3) var(--space-5);
   border-bottom: 1px solid var(--nav-border);
   gap: var(--space-4);
 }
@@ -231,4 +232,38 @@
 
 .sandbox-reset-btn:hover {
   background: var(--bg-hover);
+}
+
+/* Keep native inputs and the toolbar within narrow host screens. */
+.sandbox-panel,
+.sandbox-field,
+.sandbox-toolbar,
+.sandbox-brand {
+  min-width: 0;
+}
+.sandbox-input,
+.sandbox-select {
+  width: 100%;
+  min-width: 0;
+}
+.sandbox-row-2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+@media (max-width: 1024px) {
+  .sandbox-body {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+@media (max-width: 480px) {
+  .sandbox-topbar,
+  .sandbox-body {
+    padding-inline: var(--space-3);
+  }
+  .sandbox-brand,
+  .sandbox-toolbar__group {
+    flex-wrap: wrap;
+  }
+  .sandbox-seg {
+    flex-wrap: wrap;
+  }
 }
