@@ -1,0 +1,21 @@
+{
+  "$schema": "./node_modules/oxfmt/configuration_schema.json",
+  "semi": true,
+  "singleQuote": false,
+  "jsxSingleQuote": false,
+  "tabWidth": 2,
+  "useTabs": false,
+  "printWidth": 100,
+  "endOfLine": "lf",
+  "ignorePatterns": [
+    "node_modules/",
+    "dist/",
+    "coverage/",
+    "playwright-report/",
+    "test-results/",
+    "*.tsbuildinfo",
+    "docs/reference/task-original.md",
+    "reference-layout.svg",
+    "src/data/mock-payment-queue.json"
+  ]
+}
