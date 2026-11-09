@@ -1,3 +1,4 @@
+import { toFiniteNumber } from "../platform/to-finite-number";
 import type { IProviderPaymentQueueRow } from "../types/provider-payment-queue";
 import type { IPaymentPlannerConfig } from "./payment-planner-params";
 
@@ -54,7 +55,7 @@ export interface IPaymentPlanResult {
   totalQueueCount: number;
   /** Clamped number of selected bills: `Math.min(Math.max(0, selectedCount), totalQueueCount)`. */
   effectiveSelectedCount: number;
-  /** Number of unique providers across ALL selected bills (including or excluding invalid, specify: valid selected bills). */
+  /** Number of unique providers across selected valid bills. */
   selectedProviderCount: number;
   /** Count of selected bills that have `hasInvalidAmount === true` (excluded from sums). */
   invalidSelectedCount: number;
@@ -92,19 +93,119 @@ export function computePaymentPlan(
   config: IPaymentPlannerConfig,
   runtimeState?: IPaymentPlannerRuntimeState,
 ): IPaymentPlanResult {
-  void rows;
-  void config;
-  void runtimeState;
+  const currencyFilter = new Set(config.currencyIds);
+  const sortedRows = rows
+    .map((row, originalIndex) => ({ row, originalIndex, rank: toFiniteNumber(row.payment_rank) }))
+    .filter(
+      ({ row }) =>
+        (config.providerId === "all" || row.provider_id === config.providerId) &&
+        (config.billingCycleId === "all" || row.billing_cycle_id === config.billingCycleId) &&
+        (currencyFilter.size === 0 || currencyFilter.has(row.provider_currency_id)),
+    )
+    .sort((a, b) => {
+      if (a.rank === null && b.rank !== null) return 1;
+      if (a.rank !== null && b.rank === null) return -1;
+      return (
+        (a.rank !== null && b.rank !== null ? a.rank - b.rank : 0) ||
+        a.row.provider_bill_id - b.row.provider_bill_id ||
+        a.originalIndex - b.originalIndex
+      );
+    });
 
-  // TODO: Implement pure queue filtering, sorting, selection, and multi-currency aggregation.
+  const override = runtimeState?.selectedCountOverride;
+  const selectedCount =
+    typeof override === "number" && Number.isFinite(override) ? override : config.selectedCount;
+  const effectiveSelectedCount = Math.min(
+    Math.max(0, Math.round(selectedCount)),
+    sortedRows.length,
+  );
+  const queueItems: IQueueBillItem[] = sortedRows.map(({ row, rank }, index) => {
+    const amount = toFiniteNumber(row.provider_total_due);
+    const providerAmount = amount !== null && amount > 0 ? amount : null;
+    const customerAmount = toFiniteNumber(row.customer_total_due);
+    return {
+      queuePosition: index + 1,
+      row,
+      rank,
+      providerAmount,
+      hasInvalidAmount: providerAmount === null,
+      selected: index < effectiveSelectedCount,
+      customerAmount,
+      hasCustomerBill:
+        typeof row.customer_bill_no === "string" &&
+        row.customer_bill_no.trim().length > 0 &&
+        customerAmount !== null,
+    };
+  });
+
+  const currencies = new Map<number, { total: ICurrencyTotal; providers: Set<number> }>();
+  const providers = new Map<string, IProviderCurrencyBreakdownItem>();
+  const selectedProviders = new Set<number>();
+  let invalidSelectedCount = 0;
+
+  for (const item of queueItems) {
+    if (!item.selected) continue;
+    if (item.providerAmount === null) {
+      invalidSelectedCount++;
+      continue;
+    }
+
+    const row = item.row;
+    selectedProviders.add(row.provider_id);
+    let currency = currencies.get(row.provider_currency_id);
+    if (!currency) {
+      currency = {
+        total: {
+          currencyId: row.provider_currency_id,
+          currencyName: row.provider_currency_name,
+          totalAmount: 0,
+          billCount: 0,
+          providerCount: 0,
+        },
+        providers: new Set<number>(),
+      };
+      currencies.set(row.provider_currency_id, currency);
+    }
+    currency.total.totalAmount += item.providerAmount;
+    currency.total.billCount++;
+    currency.providers.add(row.provider_id);
+    currency.total.providerCount = currency.providers.size;
+
+    const providerKey = `${row.provider_id}:${row.provider_currency_id}`;
+    let provider = providers.get(providerKey);
+    if (!provider) {
+      provider = {
+        providerId: row.provider_id,
+        providerName: row.provider_name,
+        currencyId: row.provider_currency_id,
+        currencyName: row.provider_currency_name,
+        billCount: 0,
+        totalAmount: 0,
+        sharePercent: 0,
+      };
+      providers.set(providerKey, provider);
+    }
+    provider.totalAmount += item.providerAmount;
+    provider.billCount++;
+  }
+
+  const providerBreakdown = Array.from(providers.values());
+  for (const provider of providerBreakdown) {
+    const currency = currencies.get(provider.currencyId);
+    if (currency) {
+      provider.sharePercent = (provider.totalAmount / currency.total.totalAmount) * 100;
+    }
+  }
+  providerBreakdown.sort((a, b) => b.totalAmount - a.totalAmount);
+
   return {
-    totalQueueCount: 0,
-    effectiveSelectedCount: 0,
-    selectedProviderCount: 0,
-    invalidSelectedCount: 0,
-    currencyTotals: [],
-    providerBreakdown: [],
-    queueItems: [],
-    visibleQueueItems: [],
+    totalQueueCount: sortedRows.length,
+    effectiveSelectedCount,
+    selectedProviderCount: selectedProviders.size,
+    invalidSelectedCount,
+    currencyTotals: Array.from(currencies.values(), ({ total }) => total),
+    providerBreakdown,
+    queueItems,
+    visibleQueueItems: queueItems.slice(0, config.rowLimit),
   };
 }
