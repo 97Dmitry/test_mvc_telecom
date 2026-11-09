@@ -9,6 +9,7 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run src",
     "test:watch": "vitest src",
+    "test:e2e": "playwright test",
     "lint": "oxlint --deny-warnings .",
     "format": "oxfmt --write .",
     "format:check": "oxfmt --check ."
