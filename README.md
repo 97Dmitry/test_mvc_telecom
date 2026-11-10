@@ -4,7 +4,7 @@ A read-only React widget for planning the first N supplier invoices in a payment
 
 ## Run locally
 
-Use **Node.js 24.22.1** (see `.node-version`) and npm. Clone the [GitHub repository](https://github.com/97Dmitry/test_mvc_telecom):
+Recommended: **Node.js 24 LTS, version 24.15.0 or later within 24.x**, and npm. The tested version, **24.22.1**, is pinned in `.node-version` for reproducibility; that exact patch is not required. Clone the [GitHub repository](https://github.com/97Dmitry/test_mvc_telecom):
 
 ```sh
 git clone https://github.com/97Dmitry/test_mvc_telecom.git

@@ -2,7 +2,7 @@
 
 ## Environment and commands
 
-Use Node.js **24.22.1**, pinned in [`.node-version`](../.node-version), and npm. Follow the [README](../README.md) to clone the repository. Vite Plus is not a project dependency.
+Recommended: Node.js **24 LTS, version 24.15.0 or later within 24.x**, and npm. The tested version, **24.22.1**, is pinned in [`.node-version`](../.node-version) for reproducibility; that exact patch is not required. The dependency engine range is `^22.22.2 || ^24.15.0 || >=26.0.0`; compatibility with Node.js 22 and 26+ is based on dependency metadata, not runtime testing. Follow the [README](../README.md) to clone the repository. Vite Plus is not a project dependency.
 
 ```sh
 npm ci
