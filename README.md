@@ -137,7 +137,7 @@ npx playwright install chromium
 npm run test:e2e
 ```
 
-The verified baseline is **132 unit/component tests** and **19 Chromium E2E tests**. See [development.md](./docs/development.md) for browser setup, covered edge cases, and operational details, and [acceptance.md](./docs/acceptance.md) for the delivery checklist.
+The verified baseline is **132 unit/component tests** and **21 Chromium E2E tests**. See [development.md](./docs/development.md) for browser setup, covered edge cases, and operational details, and [acceptance.md](./docs/acceptance.md) for the delivery checklist.
 
 To regenerate the delivery screenshots (after installing Chromium):
 

@@ -46,7 +46,7 @@ Playwright starts Vite at `127.0.0.1:4173` with a strict port and stops it after
 
 Ignored `playwright-report/` and `test-results/` contain the HTML report, screenshots, and failure traces. A new run replaces the previous output. Open the report with `npx playwright show-report`.
 
-The verified baseline on 2026-11-10 is Node.js 24.22.1, Playwright 1.65.0, and Chromium in WSL2/Arch: **132 unit/component tests** and **19 E2E tests**. Lint, formatting, type checking, and production build are also part of acceptance. These results do not establish Firefox, Safari, or real INTERA host compatibility.
+The verified baseline on 2026-11-10 is Node.js 24.22.1, Playwright 1.65.0, and Chromium in WSL2/Arch: **132 unit/component tests** and **21 E2E tests**. Lint, formatting, type checking, and production build are also part of acceptance. These results do not establish Firefox, Safari, or real INTERA host compatibility.
 
 Unit tests cover configuration defaults and aliases, filtering, rank ordering, first-N selection, currency isolation, provider shares, invalid amounts, customer bills, and input immutability. Component tests exercise interaction and source updates through rerender. Chromium tests cover all four sizes and both themes, 320px layouts, refresh state preservation, the complete-queue dialog, Escape and focus return, currency disclosure, and source states. E2E tests fail on JavaScript errors or `console.error`.
 

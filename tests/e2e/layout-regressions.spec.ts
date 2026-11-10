@@ -135,3 +135,56 @@ test("narrow dialog keeps closing and all queue rows reachable", async ({ page }
   await close.click();
   await expect(dialog).not.toBeVisible();
 });
+
+for (const theme of ["light", "dark"]) {
+  test(`quarter error text stays inside its message in ${theme}`, async ({ page }, testInfo) => {
+    await page.goto("/");
+    await page.getByRole("button", { name: theme, exact: true }).click();
+    await page.getByRole("button", { name: "quarter", exact: true }).click();
+    await page.getByRole("button", { name: "error", exact: true }).click();
+    const card = page.locator('.dash-payment-planner[data-size="quarter"]');
+    const alert = card.getByRole("alert");
+    await expect(alert).toContainText("/api/ProviderPaymentQueue/bysky/query");
+
+    async function expectTextContained() {
+      const bounds = await alert.evaluate((element) => {
+        const message = element.getBoundingClientRect();
+        const range = document.createRange();
+        range.selectNodeContents(element);
+        return {
+          message: {
+            left: message.left,
+            right: message.right,
+            top: message.top,
+            bottom: message.bottom,
+          },
+          lines: Array.from(range.getClientRects(), (line) => ({
+            left: line.left,
+            right: line.right,
+            top: line.top,
+            bottom: line.bottom,
+          })),
+        };
+      });
+      expect(bounds.lines.length).toBeGreaterThan(0);
+      for (const line of bounds.lines) {
+        expect(line.left).toBeGreaterThanOrEqual(bounds.message.left);
+        expect(line.right).toBeLessThanOrEqual(bounds.message.right);
+        expect(line.top).toBeGreaterThanOrEqual(bounds.message.top);
+        expect(line.bottom).toBeLessThanOrEqual(bounds.message.bottom);
+      }
+      const message = await box(alert);
+      const widget = await box(card);
+      expect(message.x).toBeGreaterThanOrEqual(widget.x);
+      expect(message.x + message.width).toBeLessThanOrEqual(widget.x + widget.width);
+    }
+
+    await expectTextContained();
+    await page.screenshot({ path: testInfo.outputPath(`quarter-error-${theme}.png`) });
+    // A source may return an unbroken request ID or URL of arbitrary length.
+    await alert.evaluate((element) => {
+      element.textContent = `Не удалось загрузить очередь: ${"requestid".repeat(40)}`;
+    });
+    await expectTextContained();
+  });
+}

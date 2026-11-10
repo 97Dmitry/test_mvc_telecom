@@ -33,7 +33,7 @@ Open the URL printed by Vite; the default address is `http://127.0.0.1:5173/`. K
 
 For browser tests, install the Playwright browser once with `npx playwright install chromium` and run `npm run test:e2e`. Linux environments can instead set `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH` to an existing compatible Chromium executable. Browser binaries are not included in the repository.
 
-The optional `scripts/capture-screenshots.mjs` script regenerates the screenshot set; see the README for its command. Clean dependency installation was verified on Node.js 24.22.1 in WSL2/Arch: installation, lint, formatting, type checking, 132 unit/component tests, 19 Chromium E2E tests and production build passed. The development server returned HTTP 200 over IPv4, and the complete-queue dialog was checked in Chromium.
+The optional `scripts/capture-screenshots.mjs` script regenerates the screenshot set; see the README for its command. Clean dependency installation was verified on Node.js 24.22.1 in WSL2/Arch: installation, lint, formatting, type checking, 132 unit/component tests, 21 Chromium E2E tests and production build passed. The development server returned HTTP 200 over IPv4, and the complete-queue dialog was checked in Chromium.
 
 ## Scope and limitations
 
